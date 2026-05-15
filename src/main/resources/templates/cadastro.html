@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro — Pizzaria Mario</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+            rel="stylesheet"
+    >
+
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #5dade2 0%, #85c1e9 45%, #58d68d 45%, #27ae60 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .navbar-mario {
+            background-color: #e74c3c;
+            border-bottom: 6px solid #f1c40f;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+            position: relative;
+            z-index: 10;
+        }
+
+        .navbar-brand {
+            color: #ffffff !important;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px #000;
+        }
+
+        .page-container {
+            min-height: calc(100vh - 76px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 35px 15px 130px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            width: 130px;
+            height: 45px;
+            opacity: 0.95;
+            box-shadow: 30px 5px 0 white, 60px -5px 0 white;
+            z-index: 1;
+        }
+
+        .cloud-1 {
+            top: 90px;
+            left: 8%;
+        }
+
+        .cloud-2 {
+            top: 145px;
+            right: 12%;
+            transform: scale(0.8);
+        }
+
+        .question-box {
+            position: absolute;
+            width: 58px;
+            height: 58px;
+            background-color: #f1c40f;
+            border: 4px solid #2c3e50;
+            border-radius: 12px;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 7px 0 #b7950b;
+            animation: floatBox 1.8s ease-in-out infinite;
+            z-index: 2;
+        }
+
+        .question-1 {
+            top: 180px;
+            left: 12%;
+        }
+
+        .question-2 {
+            top: 240px;
+            right: 13%;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes floatBox {
+            0%, 100% {
+                transform: translateY(0) rotate(-4deg);
+            }
+
+            50% {
+                transform: translateY(-12px) rotate(4deg);
+            }
+        }
+
+        .cadastro-card {
+            width: 100%;
+            max-width: 560px;
+            background-color: #fff8dc;
+            border: 5px solid #2c3e50;
+            border-radius: 28px;
+            box-shadow: 0 16px 0 #2c3e50, 0 24px 45px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+        }
+
+        .card-header-mario {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            text-align: center;
+            padding: 34px 25px 30px;
+            border-bottom: 6px solid #f1c40f;
+        }
+
+        .mario-icon {
+            width: 95px;
+            height: 95px;
+            border-radius: 50%;
+            background: #f1c40f;
+            border: 5px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 7px 0 #b7950b;
+            font-size: 45px;
+        }
+
+        .card-header-mario h1 {
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 3px 3px #2c3e50;
+        }
+
+        .card-header-mario p {
+            margin-bottom: 0;
+            font-weight: bold;
+        }
+
+        .brick-row {
+            display: flex;
+            height: 30px;
+            background-color: #a04000;
+            border-bottom: 5px solid #6e2c00;
+        }
+
+        .brick {
+            flex: 1;
+            border: 2px solid #6e2c00;
+            background: #d35400;
+        }
+
+        .card-body {
+            background-color: #fff8dc;
+        }
+
+        .form-label {
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .form-control,
+        .form-select {
+            border: 2px solid #2c3e50;
+            border-radius: 12px;
+            background-color: #ffffff;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+        }
+
+        .input-group-text {
+            background-color: #f1c40f;
+            color: #2c3e50;
+            border: 2px solid #2c3e50;
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            font-weight: bold;
+        }
+
+        .input-group .form-control,
+        .input-group .form-select {
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .btn-mario {
+            background-color: #e74c3c;
+            color: white;
+            font-weight: bold;
+            border: 3px solid #2c3e50;
+            border-radius: 14px;
+            box-shadow: 0 6px 0 #922b21;
+            transition: 0.2s;
+        }
+
+        .btn-mario:hover {
+            background-color: #c0392b;
+            color: white;
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 #922b21;
+        }
+
+        .btn-voltar {
+            background-color: #27ae60;
+            color: white;
+            font-weight: bold;
+            border: 3px solid #2c3e50;
+            border-radius: 14px;
+            box-shadow: 0 6px 0 #145a32;
+            transition: 0.2s;
+        }
+
+        .btn-voltar:hover {
+            background-color: #1e8449;
+            color: white;
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 #145a32;
+        }
+
+        .alert-danger {
+            background-color: #ffe6e6;
+            color: #c0392b;
+            border: 2px solid #c0392b;
+            font-weight: bold;
+            border-radius: 14px;
+        }
+
+        #adminDiv {
+            display: none;
+            background-color: #fff3cd;
+            border: 2px dashed #f1c40f;
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .footer-text {
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .coin {
+            color: #f1c40f;
+            text-shadow: 1px 1px #8a6d00;
+        }
+
+        .pipe-scene {
+            position: absolute;
+            bottom: 24px;
+            right: 7%;
+            width: 210px;
+            height: 290px;
+            z-index: 2;
+        }
+
+        .mario-pixel {
+            position: absolute;
+            left: 50%;
+            bottom: 45px;
+            transform: translateX(-50%);
+            z-index: 2;
+            animation: marioSaindoDoCano 3s ease-in-out infinite;
+        }
+
+        .mario-pixel img {
+            width: 125px;
+            height: auto;
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, 0.25));
+            user-select: none;
+            pointer-events: none;
+        }
+
+        @keyframes marioSaindoDoCano {
+            0%, 100% {
+                bottom: 48px;
+            }
+
+            20% {
+                bottom: 48px;
+            }
+
+            45% {
+                bottom: 145px;
+            }
+
+            60% {
+                bottom: 145px;
+            }
+
+            80% {
+                bottom: 48px;
+            }
+        }
+
+        .pipe-top {
+            position: absolute;
+            width: 135px;
+            height: 36px;
+            background-color: #2ecc71;
+            border: 5px solid #145a32;
+            border-radius: 12px;
+            left: 37px;
+            bottom: 72px;
+            z-index: 4;
+        }
+
+        .pipe-body {
+            position: absolute;
+            width: 98px;
+            height: 100px;
+            background-color: #27ae60;
+            border: 5px solid #145a32;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            left: 55px;
+            bottom: 0;
+            z-index: 3;
+        }
+
+        .ground-line {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 24px;
+            background-color: #1e8449;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .cloud,
+            .question-box,
+            .pipe-scene {
+                display: none;
+            }
+
+            .page-container {
+                padding: 24px 14px 40px;
+            }
+
+            .cadastro-card {
+                box-shadow: 0 10px 0 #2c3e50;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-mario">
+    <div class="container justify-content-center">
+        <a class="navbar-brand fw-bold fs-3" th:href="@{/}">
+            <i class="bi bi-stars"></i>
+            Pizzaria Mario
+        </a>
+    </div>
+</nav>
+
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+
+<div class="question-box question-1">?</div>
+<div class="question-box question-2">?</div>
+
+<main class="page-container">
+
+    <div class="pipe-scene">
+
+
+        <div class="pipe-top"></div>
+        <div class="pipe-body"></div>
+    </div>
+
+    <div class="cadastro-card">
+
+        <div class="card-header-mario">
+            <div class="mario-icon">
+                🍕
+            </div>
+
+            <h1>Criar Conta</h1>
+
+            <p>
+                <i class="bi bi-coin coin"></i>
+                Cadastre-se para começar sua aventura na pizzaria
+                <i class="bi bi-coin coin"></i>
+            </p>
+        </div>
+
+        <div class="brick-row">
+            <div class="brick"></div>
+            <div class="brick"></div>
+            <div class="brick"></div>
+            <div class="brick"></div>
+            <div class="brick"></div>
+            <div class="brick"></div>
+        </div>
+
+        <div class="card-body p-4">
+
+            <div th:if="${erro}" class="alert alert-danger text-center py-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${erro}"></span>
+            </div>
+
+            <form th:action="@{/cadastro}" method="post">
+
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="nome"
+                                name="nome"
+                                placeholder="Digite seu nome"
+                                required
+                        >
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-envelope-fill"></i>
+                        </span>
+                        <input
+                                type="email"
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                placeholder="Digite seu email"
+                                required
+                        >
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Senha</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-lock-fill"></i>
+                        </span>
+                        <input
+                                type="password"
+                                class="form-control"
+                                id="senha"
+                                name="senha"
+                                placeholder="Digite sua senha"
+                                required
+                        >
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tipo" class="form-label">Tipo de conta</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-controller"></i>
+                        </span>
+                        <select
+                                name="tipo"
+                                id="tipo"
+                                class="form-select"
+                                onchange="toggleAdmin(this)"
+                        >
+                            <option value="CLIENTE">Cliente</option>
+                            <option value="ADMIN">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="adminDiv" class="mb-3">
+                    <label for="codigoAdmin" class="form-label">
+                        Código admin
+                    </label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-key-fill"></i>
+                        </span>
+                        <input
+                                type="password"
+                                class="form-control"
+                                name="codigoAdmin"
+                                id="codigoAdmin"
+                                placeholder="Digite o código secreto"
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-mario w-100 py-2 mt-3">
+                    <i class="bi bi-person-plus-fill"></i>
+                    Cadastrar
+                </button>
+
+                <a th:href="@{/}" class="btn btn-voltar w-100 py-2 mt-3">
+                    <i class="bi bi-arrow-left-circle-fill"></i>
+                    Voltar para o início
+                </a>
+            </form>
+
+            <div class="text-center mt-4 footer-text">
+                🍄 Pizzaria pronta para subir de fase! 🍄
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<div class="ground-line"></div>
+
+<script>
+    function toggleAdmin(select) {
+        const adminDiv = document.getElementById('adminDiv');
+        const codigoAdmin = document.getElementById('codigoAdmin');
+
+        if (select.value === 'ADMIN') {
+            adminDiv.style.display = 'block';
+            codigoAdmin.required = true;
+        } else {
+            adminDiv.style.display = 'none';
+            codigoAdmin.required = false;
+            codigoAdmin.value = '';
+        }
+    }
+</script>
+
+<!-- Bootstrap JS -->
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>
+
+form,
+form * {
+display: revert !important;
+visibility: visible !important;
+opacity: 1 !important;
+}
+
+.login-card,
+.cadastro-card {
+height: auto !important;
+min-height: auto !important;
+overflow: visible !important;
+}
+
+.card-body {
+display: block !important;
+height: auto !important;
+overflow: visible !important;
+}
