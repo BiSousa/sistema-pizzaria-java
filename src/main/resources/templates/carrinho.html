@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho - Pizzaria Mario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/pizzaria-mario.css}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-mario">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fs-3" th:href="@{/pizzas}">
+            <i class="bi bi-controller"></i> Pizzaria Mario
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMario">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMario">
+            <ul class="navbar-nav ms-auto gap-2">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/pizzas}"><i class="bi bi-grid-fill"></i> Pizzas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/pedidos}"><i class="bi bi-receipt-cutoff"></i> Pedidos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/carrinho}"><i class="bi bi-cart-fill"></i> Carrinho</a>
+                </li>
+                <li class="nav-item">
+                    <form th:action="@{/logout}" method="post">
+                        <button class="btn btn-yellow btn-sm" type="submit">
+                            <i class="bi bi-box-arrow-right"></i> Sair
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+
+<main class="page" style="align-items: flex-start; padding-top: 40px;">
+    <div class="card-mario" style="max-width: 1100px; margin: 0 auto;">
+
+        <div class="header-mario">
+            <div class="coin">🛒</div>
+            <h1>Carrinho</h1>
+            <p>Revise seus itens e finalize o pedido</p>
+        </div>
+
+        <div class="brick-row">
+            <div class="brick"></div><div class="brick"></div>
+            <div class="brick"></div><div class="brick"></div>
+            <div class="brick"></div><div class="brick"></div>
+        </div>
+
+        <div class="body-mario">
+
+            <div id="carrinhoVazio"
+                 class="alert alert-warning border border-3 border-dark text-center fw-bold d-none">
+                <i class="bi bi-cart-x-fill"></i> Seu carrinho está vazio.
+                <a th:href="@{/pizzas}" class="alert-link">Ver pizzas</a>
+            </div>
+
+            <form id="formFinalizar" th:action="@{/pedidos/finalizar}" method="post">
+
+                <div class="box mb-4" id="tabelaCarrinhoBox">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-cart-fill"></i> Itens do carrinho</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>Pizza</th>
+                                <th>Tamanho</th>
+                                <th>Preço unit.</th>
+                                <th>Qtd.</th>
+                                <th>Subtotal</th>
+                                <th class="text-center">Remover</th>
+                            </tr>
+                            </thead>
+                            <tbody id="itensCarrinho"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Campos hidden para enviar ao backend -->
+                    <div id="camposHidden"></div>
+
+                    <div class="text-end mt-3">
+                        <button type="button"
+                                class="btn btn-danger border border-3 border-dark fw-bold"
+                                onclick="limparCarrinho()">
+                            <i class="bi bi-trash-fill" style="color: white;"></i> Limpar carrinho
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="box">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt-fill"></i> Endereço de entrega</h5>
+                            <input type="text" name="enderecoEntrega" id="enderecoEntrega"
+                                   class="form-control"
+                                   style="border: 2px solid #2c3e50; border-radius: 12px; font-weight: bold;"
+                                   placeholder="Rua, número, bairro..." required/>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="box">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-cash-coin"></i> Pagamento</h5>
+                            <select id="formaPagamento" class="form-select"
+                                    style="border: 2px solid #2c3e50; border-radius: 12px; font-weight: bold;"
+                                    onchange="verificarDinheiro()">
+                                <option value="PIX">PIX</option>
+                                <option value="Cartão de crédito">Cartão de crédito</option>
+                                <option value="Cartão de débito">Cartão de débito</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box mt-4 text-center">
+                    <h4 class="fw-bold mb-1">Total do pedido:</h4>
+                    <h2 class="fw-bold" style="color:#e74c3c;">
+                        R$ <span id="totalPedido">0,00</span>
+                    </h2>
+                    <input type="hidden" name="precoTotal" id="precoTotalHidden"/>
+                    <button type="button"
+                            class="btn btn-mario px-5 py-2 mt-3 fs-5"
+                            onclick="tentarFinalizar()">
+                        <i class="bi bi-check-circle-fill" style="color: white;"></i> Finalizar pedido
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</main>
+
+<!-- MODAL TROCO -->
+<div class="modal fade" id="modalTroco" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border border-4 border-dark rounded-4">
+            <div class="modal-header bg-warning border-bottom border-4 border-dark">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-cash-coin"></i> Troco
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="fw-bold">Para quanto será o troco?</p>
+                <div class="input-group">
+                    <span class="input-group-text fw-bold">R$</span>
+                    <input type="number" step="0.01" id="valorTroco"
+                           class="form-control"
+                           style="border: 2px solid #2c3e50; border-radius: 0 12px 12px 0; font-weight: bold;"
+                           placeholder="0,00"/>
+                </div>
+                <div id="erroTroco"
+                     class="alert alert-danger border border-2 border-dark fw-bold mt-3 d-none">
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center gap-3">
+                <button type="button" class="btn btn-voltar" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-confirmar" onclick="confirmarTroco()">
+                    <i class="bi bi-check-circle-fill"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST SUCESSO -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="toastSucesso" class="toast align-items-center border border-3 border-dark"
+         style="background:#2ecc71; color:white;" role="alert">
+        <div class="d-flex">
+            <div class="toast-body fw-bold">
+                <i class="bi bi-check-circle-fill"></i> Pedido finalizado com sucesso!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<div class="pipe"></div>
+<div class="ground"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const modalTroco = new bootstrap.Modal(document.getElementById("modalTroco"));
+let totalAtual = 0;
+
+// ===== TOASTS =====
+function mostrarToast(mensagem, tipo) {
+    const cores = {
+        erro: { bg: "#e74c3c", icone: "bi-exclamation-triangle-fill" },
+        aviso: { bg: "#f1c40f", icone: "bi-exclamation-circle-fill", cor: "#2c3e50" },
+        sucesso: { bg: "#2ecc71", icone: "bi-check-circle-fill" }
+    };
+    const config = cores[tipo] || cores.erro;
+    const cor = config.cor || "white";
+
+    let toastEl = document.getElementById("toastDinamico");
+    if (!toastEl) {
+        toastEl = document.createElement("div");
+        toastEl.id = "toastDinamico";
+        toastEl.className = "toast align-items-center border border-3 border-dark position-fixed bottom-0 end-0 m-3";
+        toastEl.style.zIndex = "9999";
+        toastEl.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body fw-bold" id="toastDinamicoBody"></div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>`;
+        document.body.appendChild(toastEl);
+    }
+
+    toastEl.style.background = config.bg;
+    toastEl.style.color = cor;
+    const body = document.getElementById("toastDinamicoBody");
+    body.innerHTML = `<i class="bi ${config.icone} me-2"></i>${mensagem}`;
+    const btnClose = toastEl.querySelector(".btn-close");
+    btnClose.className = cor === "white"
+        ? "btn-close btn-close-white me-2 m-auto"
+        : "btn-close me-2 m-auto";
+
+    new bootstrap.Toast(toastEl, { delay: 4000 }).show();
+}
+
+function buscarCarrinho() {
+    return JSON.parse(localStorage.getItem("carrinhoPizzariaMario")) || [];
+}
+
+function salvarCarrinho(c) {
+    localStorage.setItem("carrinhoPizzariaMario", JSON.stringify(c));
+}
+
+function formatarMoeda(v) {
+    return Number(v).toFixed(2).replace(".", ",");
+}
+
+function renderizarCarrinho() {
+    const carrinho = buscarCarrinho();
+    const tbody = document.getElementById("itensCarrinho");
+    const camposHidden = document.getElementById("camposHidden");
+    const carrinhoVazio = document.getElementById("carrinhoVazio");
+    const tabelaBox = document.getElementById("tabelaCarrinhoBox");
+
+    tbody.innerHTML = "";
+    camposHidden.innerHTML = "";
+    totalAtual = 0;
+
+    if (carrinho.length === 0) {
+        carrinhoVazio.classList.remove("d-none");
+        tabelaBox.classList.add("d-none");
+        document.getElementById("totalPedido").textContent = "0,00";
+        document.getElementById("precoTotalHidden").value = "0";
+        return;
+    }
+
+    carrinhoVazio.classList.add("d-none");
+    tabelaBox.classList.remove("d-none");
+
+    carrinho.forEach((item, index) => {
+        const subtotal = item.preco * item.quantidade;
+        totalAtual += subtotal;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td class="fw-bold">${escapeHtml(item.nome)}</td>
+            <td>${escapeHtml(item.tamanho)}</td>
+            <td>R$ ${formatarMoeda(item.preco)}</td>
+            <td>
+                <input type="number" min="1" value="${item.quantidade}"
+                       class="form-control form-control-sm"
+                       style="max-width:80px; border:2px solid #2c3e50; border-radius:10px; font-weight:bold;"
+                       onchange="atualizarQuantidade(${index}, this.value)"/>
+            </td>
+            <td class="fw-bold">R$ ${formatarMoeda(subtotal)}</td>
+            <td class="text-center">
+                <button type="button"
+                        class="btn btn-danger btn-sm border border-2 border-dark fw-bold"
+                        onclick="removerItem(${index})">
+                    <i class="bi bi-trash-fill" style="color:white;"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+
+        camposHidden.innerHTML += `
+            <input type="hidden" name="pizzaTamanhoIds" value="${item.pizzaTamanhoId}"/>
+            <input type="hidden" name="quantidades" value="${item.quantidade}"/>
+        `;
+    });
+
+    document.getElementById("totalPedido").textContent = formatarMoeda(totalAtual);
+    document.getElementById("precoTotalHidden").value = totalAtual.toFixed(2);
+}
+
+function atualizarQuantidade(index, novaQtd) {
+    novaQtd = Math.max(1, parseInt(novaQtd) || 1);
+    const carrinho = buscarCarrinho();
+    carrinho[index].quantidade = novaQtd;
+    carrinho[index].subtotal = carrinho[index].preco * novaQtd;
+    salvarCarrinho(carrinho);
+    renderizarCarrinho();
+}
+
+function removerItem(index) {
+    const carrinho = buscarCarrinho();
+    carrinho.splice(index, 1);
+    salvarCarrinho(carrinho);
+    renderizarCarrinho();
+    mostrarToast("Item removido do carrinho.", "aviso");
+}
+
+function limparCarrinho() {
+    localStorage.removeItem("carrinhoPizzariaMario");
+    renderizarCarrinho();
+    mostrarToast("Carrinho limpo.", "aviso");
+}
+
+function tentarFinalizar() {
+    const carrinho = buscarCarrinho();
+    if (carrinho.length === 0) {
+        mostrarToast("Seu carrinho está vazio. Adicione pizzas antes de finalizar.", "erro");
+        return;
+    }
+    const endereco = document.getElementById("enderecoEntrega").value.trim();
+    if (!endereco) {
+        mostrarToast("Informe o endereço de entrega antes de continuar.", "erro");
+        document.getElementById("enderecoEntrega").focus();
+        return;
+    }
+    const pagamento = document.getElementById("formaPagamento").value;
+    if (pagamento === "Dinheiro") {
+        document.getElementById("erroTroco").classList.add("d-none");
+        document.getElementById("valorTroco").value = "";
+        modalTroco.show();
+    } else {
+        localStorage.removeItem("carrinhoPizzariaMario");
+        document.getElementById("formFinalizar").submit();
+    }
+}
+
+function confirmarTroco() {
+    const troco = parseFloat(
+        document.getElementById("valorTroco").value.replace(",", "."));
+    const erroDiv = document.getElementById("erroTroco");
+
+    if (!troco || isNaN(troco)) {
+        erroDiv.textContent = "Informe o valor para o troco.";
+        erroDiv.classList.remove("d-none");
+        return;
+    }
+    if (troco < totalAtual) {
+        erroDiv.textContent =
+            "O valor informado (R$ " + troco.toFixed(2).replace(".", ",") +
+            ") não pode ser menor que o total (R$ " +
+            totalAtual.toFixed(2).replace(".", ",") + ").";
+        erroDiv.classList.remove("d-none");
+        return;
+    }
+    erroDiv.classList.add("d-none");
+    modalTroco.hide();
+    localStorage.removeItem("carrinhoPizzariaMario");
+    document.getElementById("formFinalizar").submit();
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+renderizarCarrinho();
+</script>
+
+</body>
+</html>

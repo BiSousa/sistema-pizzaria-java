@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzas - Pizzaria Mario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/pizzaria-mario.css}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-mario">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fs-3" th:href="@{/pizzas}">
+            <i class="bi bi-controller"></i> Pizzaria Mario
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMario">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMario">
+            <ul class="navbar-nav ms-auto gap-2">
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/dashboard}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/pizzas}"><i class="bi bi-grid-fill"></i> Pizzas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/pedidos}"><i class="bi bi-receipt-cutoff"></i> Pedidos</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('CLIENTE')">
+                    <a class="nav-link" th:href="@{/carrinho}"><i class="bi bi-cart-fill"></i> Carrinho</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/categorias}"><i class="bi bi-tags-fill"></i> Categorias</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/ingredientes}"><i class="bi bi-basket-fill"></i> Ingredientes</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/usuarios}"><i class="bi bi-people-fill"></i> Usuários</a>
+                </li>
+                <li class="nav-item">
+                    <form th:action="@{/logout}" method="post">
+                        <button class="btn btn-yellow btn-sm" type="submit">
+                            <i class="bi bi-box-arrow-right"></i> Sair
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+
+<main class="page" style="align-items: flex-start; padding-top: 40px;">
+    <div class="card-mario" style="max-width: 1100px; margin: 0 auto;">
+
+        <div class="header-mario">
+            <div class="coin">🍕</div>
+            <h1>Tela de Pizzas</h1>
+            <p sec:authorize="hasRole('CLIENTE')">Veja ingredientes, escolha tamanho e adicione ao carrinho</p>
+            <p sec:authorize="hasRole('ADMIN')">Gerencie as pizzas cadastradas</p>
+        </div>
+
+        <div class="brick-row">
+            <div class="brick"></div><div class="brick"></div>
+            <div class="brick"></div><div class="brick"></div>
+            <div class="brick"></div><div class="brick"></div>
+        </div>
+
+        <div class="body-mario">
+
+            <div th:if="${erro}"
+                 class="alert alert-danger border border-3 border-dark fw-bold mb-4">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${erro}"></span>
+            </div>
+            <div th:if="${sucesso}"
+                 class="alert alert-success border border-3 border-dark fw-bold mb-4">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${sucesso}"></span>
+            </div>
+
+            <!-- Botão nova pizza (ADMIN) -->
+            <div class="text-center mb-4" sec:authorize="hasRole('ADMIN')">
+                <button type="button" class="btn btn-mario px-5"
+                        data-bs-toggle="modal" data-bs-target="#modalNovaPizza">
+                    <i class="bi bi-plus-circle-fill"></i> Nova Pizza
+                </button>
+            </div>
+
+            <!-- Sem pizzas -->
+            <div th:if="${#lists.isEmpty(pizzas)}"
+                 class="alert alert-warning border border-3 border-dark text-center fw-bold">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Nenhuma pizza cadastrada ainda.
+            </div>
+
+            <!-- Grid de pizzas -->
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4" th:each="pizza : ${pizzas}">
+                    <div class="box p-0 h-100 d-flex flex-column">
+
+                        <!-- Foto -->
+                        <div class="pizza-top" th:if="${pizza.fotoBase64 == null}">🍕</div>
+                        <img th:if="${pizza.fotoBase64 != null}"
+                             th:src="${pizza.fotoBase64}"
+                             alt="Foto da pizza"
+                             style="width:100%; height:180px; object-fit:cover; border-bottom: 3px solid #2c3e50;">
+
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+
+                            <!-- Nome -->
+                            <h4 class="fw-bold text-center mb-2" th:text="${pizza.nome}"></h4>
+
+                            <!-- Tag categoria -->
+                            <div class="text-center mb-3">
+                                <span th:if="${pizza.categoria != null}"
+                                      class="badge border border-2 border-dark fw-bold px-3 py-2"
+                                      style="background:#f1c40f; color:#2c3e50; border-radius:999px;"
+                                      th:text="${pizza.categoria.descricao}">
+                                </span>
+                                <span th:if="${pizza.categoria == null}"
+                                      class="badge border border-2 border-dark fw-bold px-3 py-2"
+                                      style="background:#ddd; color:#2c3e50; border-radius:999px;">
+                                    Sem categoria
+                                </span>
+                            </div>
+
+                            <!-- Ingredientes -->
+                            <h6 class="fw-bold">Ingredientes:</h6>
+                            <ul class="mb-3">
+                                <li th:each="ing : ${pizza.ingredientes}"
+                                    th:text="${ing.nome}"></li>
+                                <li th:if="${#lists.isEmpty(pizza.ingredientes)}"
+                                    class="text-muted fst-italic">Sem ingredientes</li>
+                            </ul>
+
+                            <div class="mt-auto">
+
+                                <!-- ADMIN: editar e excluir -->
+                                <div sec:authorize="hasRole('ADMIN')">
+                                    <button type="button"
+                                            class="btn btn-yellow w-100 btn-editar-pizza"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEditarPizza"
+                                            th:attr="data-id=${pizza.id}">
+                                        <i class="bi bi-pencil-square"></i> Editar pizza
+                                    </button>
+                                    <form th:action="@{/pizzas/{id}/deletar(id=${pizza.id})}" method="post" class="mt-2">
+                                        <button type="button"
+                                                class="btn btn-danger w-100 border border-3 border-dark fw-bold"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalConfirmarExclusao"
+                                                th:attr="data-id=${pizza.id}">
+                                            <i class="bi bi-trash-fill" style="color: white;"></i> Excluir
+                                        </button>
+
+                                    </form>
+
+
+                                </div>
+
+                                <!-- CLIENTE: dropdown tamanho + carrinho -->
+                                <div sec:authorize="hasRole('CLIENTE')">
+                                    <div th:if="${#lists.isEmpty(pizza.tamanhos)}"
+                                         class="alert alert-warning border border-2 border-dark fw-bold text-center py-2">
+                                        Indisponível no momento
+                                    </div>
+                                    <div th:unless="${#lists.isEmpty(pizza.tamanhos)}">
+                                        <label class="form-label fw-bold">Tamanho</label>
+                                        <select class="form-select mb-3 select-tamanho"
+                                                style="border: 2px solid #2c3e50; border-radius: 12px; font-weight: bold;">
+                                            <option th:each="t : ${pizza.tamanhos}"
+                                                    th:value="${t.tamanho.name() + '|' + t.preco + '|' + t.id}"
+                                                    th:text="${t.tamanho.name() + ' — R$ ' + #numbers.formatDecimal(t.preco, 1, 'POINT', 2, 'COMMA')}">
+                                            </option>
+                                        </select>
+                                        <button type="button"
+                                                class="btn btn-mario w-100 btn-adicionar-carrinho"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalCarrinho"
+                                                th:attr="data-pizza-nome=${pizza.nome}">
+                                            <i class="bi bi-cart-plus-fill" style="color: white;"></i> Adicionar ao carrinho
+                                        </button>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- MODAL NOVA PIZZA (ADMIN) -->
+<div class="modal fade" id="modalNovaPizza" tabindex="-1" aria-hidden="true"
+     sec:authorize="hasRole('ADMIN')">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border border-4 border-dark rounded-4">
+            <div class="modal-header bg-danger text-white border-bottom border-4 border-dark">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-plus-circle-fill"></i> Nova Pizza
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/pizzas/salvar}" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nome</label>
+                            <input type="text" name="nome" class="form-control" required/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Categoria</label>
+                            <select name="categoriaId" class="form-select" required>
+                                <option value="">-- Selecione --</option>
+                                <option th:each="cat : ${categorias}"
+                                        th:value="${cat.id}"
+                                        th:text="${cat.descricao}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="my-3"/>
+
+                    <label class="form-label fw-bold">Tamanhos e preços</label>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="border border-2 border-dark rounded p-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="tamanhos" value="BROTO" id="novoBroto"
+                                           onchange="togglePreco('precoBrotoDiv', this)">
+                                    <label class="form-check-label fw-bold" for="novoBroto">
+                                        🍕 Broto
+                                    </label>
+                                </div>
+                                <div id="precoBrotoDiv" style="display:none;">
+                                    <div class="input-group">
+                                        <span class="input-group-text fw-bold">R$</span>
+                                        <input type="number" step="0.01" name="precoBroto"
+                                               class="form-control" placeholder="0,00"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border border-2 border-dark rounded p-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="tamanhos" value="GRANDE" id="novoGrande"
+                                           onchange="togglePreco('precoGrandeDiv', this)">
+                                    <label class="form-check-label fw-bold" for="novoGrande">
+                                        🍕 Grande
+                                    </label>
+                                </div>
+                                <div id="precoGrandeDiv" style="display:none;">
+                                    <div class="input-group">
+                                        <span class="input-group-text fw-bold">R$</span>
+                                        <input type="number" step="0.01" name="precoGrande"
+                                               class="form-control" placeholder="0,00"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3"/>
+
+                    <label class="form-label fw-bold">Ingredientes</label>
+                    <div class="border border-2 border-dark rounded p-3 mb-3"
+                         style="max-height:160px; overflow-y:auto;">
+                        <div th:each="ing : ${ingredientes}" class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   name="ingredienteIds" th:value="${ing.id}"
+                                   th:id="'novo-ing-' + ${ing.id}">
+                            <label class="form-check-label fw-bold"
+                                   th:for="'novo-ing-' + ${ing.id}"
+                                   th:text="${ing.nome}"></label>
+                        </div>
+                        <p th:if="${#lists.isEmpty(ingredientes)}"
+                           class="text-muted mb-0 fst-italic">
+                            Nenhum ingrediente cadastrado.
+                        </p>
+                    </div>
+
+                    <label class="form-label fw-bold">Foto</label>
+                    <input type="file" name="foto" accept="image/*" class="form-control"/>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-voltar" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-confirmar">
+                        <i class="bi bi-check-circle-fill"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR PIZZA (ADMIN) -->
+<div class="modal fade" id="modalEditarPizza" tabindex="-1" aria-hidden="true"
+     sec:authorize="hasRole('ADMIN')">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border border-4 border-dark rounded-4">
+            <div class="modal-header bg-warning border-bottom border-4 border-dark">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square"></i> Editar Pizza
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formEditarPizza" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nome</label>
+                            <input type="text" name="nome" id="editNome"
+                                   class="form-control" required/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Categoria</label>
+                            <select name="categoriaId" id="editCategoria" class="form-select" required>
+                                <option value="">-- Selecione --</option>
+                                <option th:each="cat : ${categorias}"
+                                        th:value="${cat.id}"
+                                        th:text="${cat.descricao}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="my-3"/>
+
+                    <label class="form-label fw-bold">Tamanhos e preços</label>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="border border-2 border-dark rounded p-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="tamanhos" value="BROTO" id="editBroto"
+                                           onchange="togglePreco('editPrecoBrotoDiv', this)">
+                                    <label class="form-check-label fw-bold" for="editBroto">
+                                        🍕 Broto
+                                    </label>
+                                </div>
+                                <div id="editPrecoBrotoDiv" style="display:none;">
+                                    <div class="input-group">
+                                        <span class="input-group-text fw-bold">R$</span>
+                                        <input type="number" step="0.01" name="precoBroto"
+                                               id="editPrecoBroto" class="form-control" placeholder="0,00"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border border-2 border-dark rounded p-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="tamanhos" value="GRANDE" id="editGrande"
+                                           onchange="togglePreco('editPrecoGrandeDiv', this)">
+                                    <label class="form-check-label fw-bold" for="editGrande">
+                                        🍕 Grande
+                                    </label>
+                                </div>
+                                <div id="editPrecoGrandeDiv" style="display:none;">
+                                    <div class="input-group">
+                                        <span class="input-group-text fw-bold">R$</span>
+                                        <input type="number" step="0.01" name="precoGrande"
+                                               id="editPrecoGrande" class="form-control" placeholder="0,00"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3"/>
+
+                    <label class="form-label fw-bold">Ingredientes</label>
+                    <div class="border border-2 border-dark rounded p-3 mb-3"
+                         style="max-height:160px; overflow-y:auto;">
+                        <div th:each="ing : ${ingredientes}" class="form-check">
+                            <input class="form-check-input edit-ingrediente-check"
+                                   type="checkbox" name="ingredienteIds"
+                                   th:value="${ing.id}"
+                                   th:id="'edit-ing-' + ${ing.id}">
+                            <label class="form-check-label fw-bold"
+                                   th:for="'edit-ing-' + ${ing.id}"
+                                   th:text="${ing.nome}"></label>
+                        </div>
+                        <p th:if="${#lists.isEmpty(ingredientes)}"
+                           class="text-muted mb-0 fst-italic">
+                            Nenhum ingrediente cadastrado.
+                        </p>
+                    </div>
+
+                    <label class="form-label fw-bold">Nova foto (opcional)</label>
+                    <input type="file" name="foto" accept="image/*" class="form-control"/>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-voltar" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-confirmar">
+                        <i class="bi bi-check-circle-fill"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CARRINHO (CLIENTE) -->
+<div class="modal fade" id="modalCarrinho" tabindex="-1" aria-hidden="true"
+     sec:authorize="hasRole('CLIENTE')">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border border-4 border-dark rounded-4">
+            <div class="modal-header bg-danger text-white border-bottom border-4 border-dark">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-cart-plus-fill"></i> Adicionar ao carrinho
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="resumo-carrinho-modal">
+                    <div>Pizza: <strong id="modalNomePizza"></strong></div>
+                    <div>Tamanho: <strong id="modalTamanhoPizza"></strong></div>
+                    <div>Preço unitário: R$ <strong id="modalPrecoPizza"></strong></div>
+                </div>
+                <label class="form-label mt-4 text-center w-100 fw-bold">Quantidade:</label>
+                <div class="d-flex justify-content-center align-items-center gap-2 mt-2 quantidade-box">
+                    <button type="button" class="btn btn-danger fw-bold px-3" onclick="alterarQtd(-1)">−</button>
+                    <input type="number" id="modalQuantidade" class="form-control text-center w-auto" min="1" value="1" style="max-width: 80px;">
+                    <button type="button" class="btn btn-success fw-bold px-3" onclick="alterarQtd(1)">+</button>
+                </div>
+                <div class="alert alert-info border border-3 border-dark mt-4 fw-bold text-center">
+                    Total: R$ <span id="modalTotal">0,00</span>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-voltar" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-confirmar" id="btnConfirmarCarrinho">
+                    <i class="bi bi-check-circle-fill"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="pipe"></div>
+<div class="ground"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+    // Mostrar/ocultar preço ao marcar checkbox de tamanho
+function togglePreco(divId, checkbox) {
+    const div = document.getElementById(divId);
+    div.style.display = checkbox.checked ? "block" : "none";
+    const input = div.querySelector("input");
+    if (!checkbox.checked) input.value = "";
+}
+
+// ===== TOAST =====
+function mostrarToast(mensagem) {
+    let toastEl = document.getElementById("toastCarrinho");
+    if (!toastEl) {
+        toastEl = document.createElement("div");
+        toastEl.id = "toastCarrinho";
+        toastEl.className = "toast align-items-center border border-3 border-dark position-fixed bottom-0 end-0 m-3";
+        toastEl.style.background = "#2ecc71";
+        toastEl.style.color = "white";
+        toastEl.style.zIndex = "9999";
+        toastEl.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body fw-bold" id="toastMensagem"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast"></button>
+            </div>`;
+        document.body.appendChild(toastEl);
+    }
+    document.getElementById("toastMensagem").textContent = mensagem;
+    new bootstrap.Toast(toastEl, { delay: 3000 }).show();
+}
+
+// ===== CARRINHO (CLIENTE) =====
+let pizzaAtual = null;
+
+document.querySelectorAll(".btn-adicionar-carrinho").forEach(btn => {
+    btn.addEventListener("click", function () {
+        const card = this.closest(".col-md-6.col-lg-4");
+        const select = card.querySelector(".select-tamanho");
+        const partes = select.value.split("|");
+        const tamanho = partes[0];
+        const preco = parseFloat(partes[1]);
+        const pizzaTamanhoId = partes[2];
+        const nome = this.getAttribute("data-pizza-nome");
+
+        pizzaAtual = { nome, tamanho, preco, pizzaTamanhoId };
+
+        document.getElementById("modalNomePizza").textContent = nome;
+        document.getElementById("modalTamanhoPizza").textContent = tamanho;
+        document.getElementById("modalPrecoPizza").textContent =
+            preco.toFixed(2).replace(".", ",");
+        document.getElementById("modalQuantidade").value = 1;
+        atualizarTotal();
+    });
+});
+
+document.getElementById("modalQuantidade")?.addEventListener("input", atualizarTotal);
+
+function alterarQtd(val) {
+    const input = document.getElementById("modalQuantidade");
+    input.value = Math.max(1, parseInt(input.value) + val);
+    atualizarTotal();
+}
+
+function atualizarTotal() {
+    if (!pizzaAtual) return;
+    const qtd = Math.max(1, parseInt(document.getElementById("modalQuantidade").value));
+    document.getElementById("modalTotal").textContent =
+        (pizzaAtual.preco * qtd).toFixed(2).replace(".", ",");
+}
+
+document.getElementById("btnConfirmarCarrinho")?.addEventListener("click", function () {
+    if (!pizzaAtual) return;
+    const qtd = Math.max(1, parseInt(document.getElementById("modalQuantidade").value));
+    let carrinho = JSON.parse(localStorage.getItem("carrinhoPizzariaMario")) || [];
+    const existente = carrinho.find(i =>
+        i.pizzaTamanhoId === pizzaAtual.pizzaTamanhoId);
+    if (existente) {
+        existente.quantidade += qtd;
+        existente.subtotal = existente.preco * existente.quantidade;
+    } else {
+        carrinho.push({
+            nome: pizzaAtual.nome,
+            tamanho: pizzaAtual.tamanho,
+            preco: pizzaAtual.preco,
+            pizzaTamanhoId: pizzaAtual.pizzaTamanhoId,
+            quantidade: qtd,
+            subtotal: pizzaAtual.preco * qtd
+        });
+    }
+    localStorage.setItem("carrinhoPizzariaMario", JSON.stringify(carrinho));
+
+    bootstrap.Modal.getInstance(document.getElementById("modalCarrinho")).hide();
+    setTimeout(() => mostrarToast("✅ " + pizzaAtual.nome + " adicionada ao carrinho!"), 400);
+});
+
+// ===== EDITAR PIZZA (ADMIN) =====
+document.querySelectorAll(".btn-editar-pizza").forEach(btn => {
+    btn.addEventListener("click", function () {
+        const id = this.getAttribute("data-id");
+
+        fetch("/pizzas/" + id + "/dados")
+            .then(res => res.json())
+            .then(pizza => {
+                document.getElementById("formEditarPizza").action = "/pizzas/" + id + "/atualizar";
+                document.getElementById("editNome").value = pizza.nome || "";
+                document.getElementById("editCategoria").value = pizza.categoriaId || "";
+
+                // ingredientes
+                document.querySelectorAll(".edit-ingrediente-check").forEach(cb => {
+                    cb.checked = pizza.ingredientes.includes(cb.value);
+                });
+
+                // tamanhos e preços
+                const broto = pizza.tamanhos.find(t => t.tamanho === "BROTO");
+                const grande = pizza.tamanhos.find(t => t.tamanho === "GRANDE");
+
+                const checkBroto = document.getElementById("editBroto");
+                const divBroto = document.getElementById("editPrecoBrotoDiv");
+                checkBroto.checked = !!broto;
+                divBroto.style.display = broto ? "block" : "none";
+                document.getElementById("editPrecoBroto").value = broto ? broto.preco : "";
+
+                const checkGrande = document.getElementById("editGrande");
+                const divGrande = document.getElementById("editPrecoGrandeDiv");
+                checkGrande.checked = !!grande;
+                divGrande.style.display = grande ? "block" : "none";
+                document.getElementById("editPrecoGrande").value = grande ? grande.preco : "";
+            })
+            .catch(err => console.error("Erro ao buscar dados da pizza:", err));
+    });
+});
+
+// ===== CONFIRMAR EXCLUSÃO (ADMIN) =====
+document.addEventListener("DOMContentLoaded", function() {
+    const modal = document.getElementById("modalConfirmarExclusao");
+    modal.addEventListener("show.bs.modal", function(event) {
+        const button = event.relatedTarget;
+        const pizzaId = button.getAttribute("data-id");
+        const form = document.getElementById("formExcluirPizza");
+        form.setAttribute("action", "/pizzas/" + pizzaId + "/deletar");
+    });
+});
+
+// ===== TOAST AUTOMÁTICO =====
+document.addEventListener("DOMContentLoaded", function() {
+    const toastErro = document.getElementById("toastErro");
+    if (toastErro) {
+        new bootstrap.Toast(toastErro, { delay: 4000 }).show();
+    }
+
+    const toastSucesso = document.getElementById("toastSucesso");
+    if (toastSucesso) {
+        new bootstrap.Toast(toastSucesso, { delay: 3000 }).show();
+    }
+});
+
+
+</script>
+
+<!-- MODAL CONFIRMAR EXCLUSÃO (ADMIN) -->
+<div class="modal fade" id="modalConfirmarExclusao" tabindex="-1" aria-hidden="true"
+     sec:authorize="hasRole('ADMIN')">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border border-3 border-dark">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar exclusão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja excluir esta pizza?
+            </div>
+            <div class="modal-footer">
+                <form id="formExcluirPizza" method="post">
+                    <button type="submit" class="btn btn-danger fw-bold">Excluir</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
