@@ -11,7 +11,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/ingredientes")
+@RequestMapping("/api/ingredientes")
 public class IngredienteController {
 
     private final IngredienteService ingredienteService;
@@ -61,7 +61,11 @@ public class IngredienteController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        ingredienteService.deletar(id);
-        return ResponseEntity.noContent().build();
+        try {
+            ingredienteService.deletar(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(409).build();
+        }
     }
 }

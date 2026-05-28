@@ -19,30 +19,18 @@ public class IngredienteService {
         this.ingredienteRepository = ingredienteRepository;
     }
 
-    /**
-     * Lista todos os ingredientes (sem paginação).
-     */
     public List<Ingrediente> listarTodos() {
         return ingredienteRepository.findAll();
     }
 
-    /**
-     * Lista ingredientes paginados.
-     */
     public Page<Ingrediente> listarTodos(Pageable pageable) {
         return ingredienteRepository.findAll(pageable);
     }
 
-    /**
-     * Busca por id.
-     */
     public Optional<Ingrediente> buscarPorId(Long id) {
         return ingredienteRepository.findById(id);
     }
 
-    /**
-     * Busca por nome exato.
-     */
     public Optional<Ingrediente> buscarPorNome(String nome) {
         if (nome == null || nome.isBlank()) {
             return Optional.empty();
@@ -50,10 +38,6 @@ public class IngredienteService {
         return ingredienteRepository.findByNome(nome);
     }
 
-    /**
-     * Salva um novo ingrediente.
-     * Valida nome não nulo e unicidade por nome.
-     */
     @Transactional
     public Ingrediente salvar(Ingrediente ingrediente) {
         if (ingrediente == null) {
@@ -70,10 +54,6 @@ public class IngredienteService {
         return ingredienteRepository.save(ingrediente);
     }
 
-    /**
-     * Atualiza um ingrediente existente.
-     * Só atualiza campos não nulos do objeto recebido.
-     */
     @Transactional
     public Ingrediente atualizar(Long id, Ingrediente dados) {
         Ingrediente existente = ingredienteRepository.findById(id)
@@ -90,9 +70,6 @@ public class IngredienteService {
         return ingredienteRepository.save(existente);
     }
 
-    /**
-     * Deleta por id. Lança exceção se não existir.
-     */
     @Transactional
     public void deletar(Long id) {
         if (!ingredienteRepository.existsById(id)) {
