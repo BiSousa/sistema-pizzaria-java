@@ -11,7 +11,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/itens-pedido")
+@RequestMapping("/api/itens-pedido")
 public class ItemPedidoController {
 
     private final ItemPedidoService itemPedidoService;
