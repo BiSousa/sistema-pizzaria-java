@@ -13,7 +13,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pizzas")
+@RequestMapping("/api/pizzas")
 public class PizzaController {
 
     private final PizzaService pizzaService;
@@ -73,9 +73,9 @@ public class PizzaController {
         return ResponseEntity.ok(atualizado);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    @PostMapping("/{id}/deletar")
+    public String deletar(@PathVariable Long id) {
         pizzaService.deletar(id);
-        return ResponseEntity.noContent().build();
+        return "redirect:/pizzas";
     }
 }

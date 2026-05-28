@@ -1,7 +1,6 @@
 package com.pizzaria.sistema.model;
 
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Entity
@@ -10,9 +9,7 @@ public class Pizza {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private TamanhoPizza tamanho;
-    private Double preco;
+    private String nome;
 
     @ManyToOne
     private Categoria categoria;
@@ -20,44 +17,28 @@ public class Pizza {
     @ManyToMany
     private List<Ingrediente> ingredientes;
 
-    public Long getId() {
-        return id;
-    }
+    @OneToMany(mappedBy = "pizza", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PizzaTamanho> tamanhos;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(columnDefinition = "TEXT")
+    private String fotoBase64;
 
-    public TamanhoPizza getTamanho() {
-        return tamanho;
-    }
+    // Getters e Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setTamanho(TamanhoPizza tamanho) {
-        this.tamanho = tamanho;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public Double getPreco() {
-        return preco;
-    }
+    public Categoria getCategoria() { return categoria; }
+    public void setCategoria(Categoria categoria) { this.categoria = categoria; }
 
-    public void setPreco(Double preco) {
-        this.preco = preco;
-    }
+    public List<Ingrediente> getIngredientes() { return ingredientes; }
+    public void setIngredientes(List<Ingrediente> ingredientes) { this.ingredientes = ingredientes; }
 
-    public Categoria getCategoria() {
-        return categoria;
-    }
+    public List<PizzaTamanho> getTamanhos() { return tamanhos; }
+    public void setTamanhos(List<PizzaTamanho> tamanhos) { this.tamanhos = tamanhos; }
 
-    public void setCategoria(Categoria categoria) {
-        this.categoria = categoria;
-    }
-
-    public List<Ingrediente> getIngredientes() {
-        return ingredientes;
-    }
-
-    public void setIngredientes(List<Ingrediente> ingredientes) {
-        this.ingredientes = ingredientes;
-    }
+    public String getFotoBase64() { return fotoBase64; }
+    public void setFotoBase64(String fotoBase64) { this.fotoBase64 = fotoBase64; }
 }
-
